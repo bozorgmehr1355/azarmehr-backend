@@ -1,0 +1,22 @@
+{
+    "name": "azarmehr-backend",
+    "version": "1.0.0",
+    "description": "Azarmehr backend API — deployed on Render.com",
+    "main": "server.js",
+    "type": "commonjs",
+    "scripts": {
+        "dev": "node server.js",
+        "start": "node server.js",
+        "test": "echo \"No tests defined\""
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.57.4",
+        "archiver": "^7.0.1",
+        "bcryptjs": "^3.0.2",
+        "dotenv": "^17.4.2",
+        "express": "^4.22.2",
+        "fs-extra": "^11.3.0",
+        "jsonwebtoken": "^9.0.2",
+        "pg": "^8.22.0"
+    }
+}

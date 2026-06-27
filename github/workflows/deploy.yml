@@ -1,0 +1,45 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # هر بار که روی شاخه main پوش کنید، این اکشن اجرا می‌شود
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # یا نسخه متناسب با پروژه شما
+
+      - name: Install Build Tools
+        run: |
+          npm install -g browserify babelify @babel/core @babel/preset-react terser
+
+      - name: Build Project
+        run: |
+          # اجرای دستورات بیلد طبق مستندات پروژه
+          browserify app.jsx -t [ babelify --presets [ @babel/preset-react ] ] -o bundle.js
+          terser bundle.js --compress --mangle -o bundle.min.js
+          
+          # ایجاد یک پوشه برای خروجی نهایی
+          mkdir dist
+          cp index.html dashboard.html bundle.min.js dist/
+          # اگر پوشه css یا فایل‌های دیگری دارید، آن‌ها را هم کپی کنید:
+          # cp -r css dist/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist # پوشه‌ای که فایل‌های نهایی در آن قرار دارند
+
