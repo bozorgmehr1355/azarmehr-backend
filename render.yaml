@@ -10,7 +10,7 @@ services:
   - type: web
     name: azarmehr-backend
     runtime: node
-    repo: https://github.com/YOUR_USER/YOUR_REPO  # ← Replace with your actual repo URL
+    repo: https://github.com/bozorgmehr1355/azarmehr-backend
     branch: main                                    # ← Change to your deployment branch
     region: singapore                               # or frankfurt (closer to Iran)
     plan: free
