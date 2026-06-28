@@ -68,6 +68,24 @@ module.exports = async (req, res) => {
             { onConflict: 'user_id', ignoreDuplicates: true }
           );
         } catch(_) { /* org_chart table may not exist yet */ }
+
+        // ایجاد/به‌روزرسانی مشتری پورتال عمده
+        try {
+          const portalHash = bcrypt.hashSync(u.password, 8);
+          await supabase.from('crm_customers').upsert(
+            {
+              portal_username: u.username,
+              portal_password: portalHash,
+              portal_active: true,
+              name: u.name,
+              type: 'B2B',
+              grade: 'standard',
+              customer_kind: 'legal',
+              status: 'active'
+            },
+            { onConflict: 'portal_username', ignoreDuplicates: false }
+          );
+        } catch(_) { /* crm_customers table may not exist yet */ }
       }
     }
 
