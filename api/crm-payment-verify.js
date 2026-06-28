@@ -93,7 +93,6 @@ module.exports = async (req, res) => {
         .update({
           status: "rejected",
           verified_at: now,
-          verified_by: admin.id,
           admin_note: admin_notes?.trim() || null
         })
         .in("id", paymentIds)
@@ -130,7 +129,6 @@ module.exports = async (req, res) => {
       .update({
         status: "verified",
         verified_at: now,
-        verified_by: admin.id,
         admin_note: admin_notes?.trim() || null
       })
       .in("id", paymentIds)
@@ -162,7 +160,6 @@ module.exports = async (req, res) => {
         .update({ 
           status: "pending", 
           verified_at: null, 
-          verified_by: null, 
           admin_note: null 
         })
         .in("id", paymentIds);
