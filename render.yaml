@@ -10,7 +10,7 @@ services:
   - type: web
     name: azarmehr-backend
     runtime: node
-    repo: https://github.com/YOUR_USER/YOUR_REPO  # ← Replace with your actual repo URL
+    repo: https://github.com/bozorgmehr1355/azarmehr-backend
     branch: main                                    # ← Change to your deployment branch
     region: singapore                               # or frankfurt (closer to Iran)
     plan: free
@@ -20,6 +20,12 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 22
+      - key: SETUP_ENABLED
+        sync: false
+      - key: SETUP_SECRET
+        sync: false
+      - key: SEED_PASSWORDS_JSON
+        sync: false
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY

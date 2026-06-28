@@ -1,20 +1,15 @@
 const { bcrypt, cors, supabase } = require('./_lib');
 
-// 12 کاربر اولیه
-const USERS = [
-  {id:1, name:'محمدرضا بزرگمهر', username:'bozorgmehr', password:'Azr@1401', role:'دیجیتال مارکتینگ', avatar:'👨‍💼'},
-  {id:2, name:'سعید کریم‌لو', username:'karimloo', password:'Azr@1402', role:'مدیر عامل', avatar:'👔'},
-  {id:3, name:'امید سراج‌الدینی', username:'seraj', password:'Azr@1403', role:'مدیر امور مالی', avatar:'💼'},
-  {id:4, name:'لیلا اردستانی', username:'ardestani', password:'Azr@1404', role:'مدیر فروش', avatar:'👩‍💼'},
-  {id:5, name:'ملیکا کمازانی', username:'kamazani', password:'Azr@1405', role:'بازرگانی خارجی', avatar:'🌍'},
-  {id:6, name:'مجتبی قاسم‌بیک', username:'ghasembik', password:'Azr@1406', role:'مدیر تولید', avatar:'⚙️'},
-  {id:7, name:'فیض‌الله حسینی', username:'hosseini', password:'Azr@1407', role:'انباردار', avatar:'📦'},
-  {id:8, name:'فرهاد محسن‌زاده', username:'mohsenzadeh', password:'Azr@1408', role:'تحصیلدار', avatar:'📋'},
-  {id:9, name:'فغانی', username:'faghani', password:'Azr@1409', role:'تشریفات', avatar:'🎩'},
-  {id:10, name:'حسین مرادی', username:'moradi', password:'Azr@1410', role:'راننده', avatar:'🚚'},
-  {id:11, name:'المیرا دولتخواه', username:'dolatkhah', password:'Azr@1411', role:'حسابدار فروش', avatar:'💰'},
-  {id:12, name:'کوثر اعرابی', username:'aarabi', password:'Azr@1412', role:'خزانه‌دار', avatar:'🏦'}
-];
+// کاربران از متغیر محیطی SEED_PASSWORDS_JSON خوانده می‌شوند
+let USERS;
+try {
+  const raw = process.env.SEED_PASSWORDS_JSON || '[]';
+  USERS = JSON.parse(raw);
+  if (!Array.isArray(USERS)) { USERS = []; }
+} catch (e) {
+  console.error('Failed to parse SEED_PASSWORDS_JSON:', e.message);
+  USERS = [];
+}
 
 // مپینگ system_role طبق مستندات پروژه
 const SYSTEM_ROLES = {
@@ -32,8 +27,14 @@ module.exports = async (req, res) => {
   cors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // امنیت: فقط با secret قابل اجرا
-  if (req.query.secret !== 'azarmehr-setup-2024') {
+  // ENV gate — فقط در صورتی اجرا شود که SETUP_ENABLED=true باشد
+  if (process.env.SETUP_ENABLED !== 'true') {
+    return res.status(403).json({ error: 'Setup is disabled via SETUP_ENABLED env var' });
+  }
+
+  // امنیت: secret از متغیر محیطی خوانده می‌شود
+  const SETUP_SECRET = process.env.SETUP_SECRET || 'azarmehr-setup-2024';
+  if (req.query.secret !== SETUP_SECRET) {
     return res.status(403).json({error: 'غیرمجاز'});
   }
 
