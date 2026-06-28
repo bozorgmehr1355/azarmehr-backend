@@ -55,43 +55,42 @@ function mount(basePath, handler) {
 // Vercel handler without ANY logic change
 // ───────────────────────────────────────────
 
-// Load all handlers once (no require cache clearing needed in Express)
+// Load all handlers from handlers/ (api/ now has only the Vercel entry-point index.js)
 const handlers = {
-  login:                   require('./api/login'),
-  portalLogin:             require('./api/portal-login'),
-  portalRegister:          require('./api/portal-register'),
-  users:                   require('./api/users'),
-  crmCustomers:            require('./api/crm-customers'),
-  crmOrders:               require('./api/crm-orders'),
-  crmOrderItems:           require('./api/crm-order-items'),
-  crmOrderStatusLog:       require('./api/crm-order-status-log'),
-  crmOrderTasks:           require('./api/crm-order-tasks'),
-  crmOrderToProject:       require('./api/crm-order-to-project'),
-  crmCommunications:       require('./api/crm-communications'),
-  crmPayments:             require('./api/crm-payments'),
-  crmPaymentsAdmin:        require('./api/crm-payments-admin'),
-  crmPaymentSubmit:        require('./api/crm-payment-submit'),
-  crmPaymentVerify:        require('./api/crm-payment-verify'),
-  crmProformaIssue:        require('./api/crm-proforma-issue'),
-  crmProformaApprove:      require('./api/crm-proforma-approve'),
-  crmInvoices:             require('./api/crm-invoices'),
-  crmGuaranteeClaims:      require('./api/crm-guarantee-claims'),
-  projects:                require('./api/projects'),
-  projectTasks:            require('./api/project-tasks'),
-  projectMembers:          require('./api/project-members'),
-  documents:               require('./api/documents'),
-  chat:                    require('./api/chat'),
-  notifications:           require('./api/notifications'),
-  requests:                require('./api/requests'),
-  payments:                require('./api/payments'),
-  settings:                require('./api/settings'),
-  products:                require('./api/products'),
-  scorpionCustomers:       require('./api/scorpion-customers'),
-  orgChart:                require('./api/org-chart'),
-  portalRegistrationRequests: require('./api/portal-registration-requests'),
-  setup:                   require('./api/setup'),
-  debug:                   require('./api/debug'),
-  index:                   require('./api/index'),
+  login:                   require('./handlers/login'),
+  portalLogin:             require('./handlers/portal-login'),
+  portalRegister:          require('./handlers/portal-register'),
+  users:                   require('./handlers/users'),
+  crmCustomers:            require('./handlers/crm-customers'),
+  crmOrders:               require('./handlers/crm-orders'),
+  crmOrderItems:           require('./handlers/crm-order-items'),
+  crmOrderStatusLog:       require('./handlers/crm-order-status-log'),
+  crmOrderTasks:           require('./handlers/crm-order-tasks'),
+  crmOrderToProject:       require('./handlers/crm-order-to-project'),
+  crmCommunications:       require('./handlers/crm-communications'),
+  crmPayments:             require('./handlers/crm-payments'),
+  crmPaymentsAdmin:        require('./handlers/crm-payments-admin'),
+  crmPaymentSubmit:        require('./handlers/crm-payment-submit'),
+  crmPaymentVerify:        require('./handlers/crm-payment-verify'),
+  crmProformaIssue:        require('./handlers/crm-proforma-issue'),
+  crmProformaApprove:      require('./handlers/crm-proforma-approve'),
+  crmInvoices:             require('./handlers/crm-invoices'),
+  crmGuaranteeClaims:      require('./handlers/crm-guarantee-claims'),
+  projects:                require('./handlers/projects'),
+  projectTasks:            require('./handlers/project-tasks'),
+  projectMembers:          require('./handlers/project-members'),
+  documents:               require('./handlers/documents'),
+  chat:                    require('./handlers/chat'),
+  notifications:           require('./handlers/notifications'),
+  requests:                require('./handlers/requests'),
+  payments:                require('./handlers/payments'),
+  settings:                require('./handlers/settings'),
+  products:                require('./handlers/products'),
+  scorpionCustomers:       require('./handlers/scorpion-customers'),
+  orgChart:                require('./handlers/org-chart'),
+  portalRegistrationRequests: require('./handlers/portal-registration-requests'),
+  setup:                   require('./handlers/setup'),
+  debug:                   require('./handlers/debug'),
 };
 
 // Mount every endpoint
@@ -130,8 +129,14 @@ mount('/api/portal-registration-requests', handlers.portalRegistrationRequests);
 mount('/api/setup',                      handlers.setup);
 mount('/api/debug',                      handlers.debug);
 
-// Root catch-all — matches everything not caught above (including / and /api)
-mount('/', handlers.index);
+// Root catch-all — returns route listing
+app.all('/', (req, res) => {
+  res.json({
+    ok: true,
+    service: 'azarmehr-backend',
+    routes: Object.keys(handlers).map(k => `/api/${k}`),
+  });
+});
 
 // ───────────────────────────────────────────
 // Start
