@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
 
       const { data: payment, error: payError } = await supabase
         .from("crm_payments")
-        .select("id, order_id, amount, status")
+        .select("id, amount, status, note")
         .eq("id", parsedPaymentId)
         .single();
 
@@ -57,32 +57,21 @@ module.exports = async (req, res) => {
 
       targetPayments = [payment];
     } else {
-      // حالت همه پرداخت‌های pending یک سفارش
-      const parsedOrderId = Number(order_id);
-      if (!Number.isFinite(parsedOrderId) || parsedOrderId <= 0) {
-        return res.status(400).json({ error: "order_id معتبر نیست" });
-      }
-
-      const { data: payments, error: payError } = await supabase
-        .from("crm_payments")
-        .select("id, order_id, amount, status")
-        .eq("order_id", parsedOrderId)
-        .eq("status", "pending");
-
-      if (payError) {
-        return res.status(500).json({ error: payError.message || "خطا در بررسی پرداخت‌ها" });
-      }
-
-      if (!payments || payments.length === 0) {
-        return res.status(400).json({
-          error: "هیچ پرداخت در انتظار تاییدی برای این سفارش یافت نشد"
-        });
-      }
-
-      targetPayments = payments;
+      // حالت همه پرداخت‌های pending یک سفارش — نیاز به payment_ids
+      return res.status(400).json({
+        error: "برای تایید گروهی، لطفاً payment_ids را به صورت آرایه ارسال کنید"
+      });
     }
 
-    const orderIdToUpdate = targetPayments[0].order_id;
+    // استخراج order_id از فیلد note (فرمت: "سفارش #52 - روش پرداخت: ...")
+    let orderIdToUpdate = null;
+    const noteMatch = targetPayments[0]?.note?.match(/سفارش #(\d+)/);
+    if (noteMatch) orderIdToUpdate = parseInt(noteMatch[1], 10);
+    // اگر order_id مستقیماً در body داده شده باشد، اولویت دارد
+    if (!orderIdToUpdate && order_id) orderIdToUpdate = Number(order_id);
+    if (!orderIdToUpdate) {
+      return res.status(400).json({ error: "شناسه سفارش یافت نشد. لطفاً order_id را در body ارسال کنید" });
+    }
     const paymentIds = targetPayments.map(p => p.id);
 
     // ── دریافت اطلاعات سفارش قبل از تغییر ───────────────────────────────────

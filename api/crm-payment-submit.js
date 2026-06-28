@@ -66,22 +66,22 @@ module.exports = async (req, res) => {
     if (note && note.trim())    parts.push(note.trim());
     finalNote = parts.join(" - ");
 
-    // ── Insert — با order_id به عنوان ستون جداگانه ─────────────────────────
+    // ── Insert — بدون order_id (ستون جداگانه در دیتابیس وجود ندارد) ──────
     const now = new Date().toISOString();
     const payload = {
       customer_id:    user.id,
-      order_id:       parsedOrderId,  // ← اضافه شد
       amount:         parsedAmount,
       note:           finalNote,
       payment_date:   now,
       created_at:     now,
       status:         "pending",
     };
+    if (payment_method) payload.payment_method = payment_method.trim();
 
     const { data: payment, error } = await supabase
       .from("crm_payments")
       .insert(payload)
-      .select("id, customer_id, order_id, amount, status")  // ← order_id اضافه شد
+      .select("id, customer_id, amount, status")
       .single();
 
     if (error) {
@@ -94,7 +94,6 @@ module.exports = async (req, res) => {
       payment: {
         id:          payment.id,
         customer_id: payment.customer_id,
-        order_id:    payment.order_id,  // ← اضافه شد
         amount:      payment.amount,
         status:      payment.status || "pending",
       },
