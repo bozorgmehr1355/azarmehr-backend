@@ -10,6 +10,25 @@ module.exports = async (req, res) => {
     // ── Auth: فقط admin/super_admin مجاز است ───────────────────────────────
     const admin = requireAdmin(req);
 
+    // ── Resolve crm_admin_users.id (BIGINT) from JWT username ──────────────
+    // JWT payload contains admin.username (set from users table at login).
+    // crm_admin_users shares the same username, so we use it as the bridge
+    // to get the BIGINT id required by crm_order_status_log.changed_by (INTEGER).
+    if (!admin.username) {
+      return res.status(401).json({ error: "Admin username missing from token" });
+    }
+    const { data: crmAdminUser, error: adminLookupError } = await supabase
+      .from("crm_admin_users")
+      .select("id")
+      .eq("username", admin.username)
+      .single();
+
+    if (adminLookupError || !crmAdminUser) {
+      console.error("[crm-payment-verify] admin lookup failed:", adminLookupError?.message || "no record");
+      return res.status(403).json({ error: "Admin is not registered in CRM admin users" });
+    }
+    const adminUserId = crmAdminUser.id; // BIGINT — for changed_by
+
     // ── Validate body ───────────────────────────────────────────────────────
     const { payment_id, order_id, action = "verify", admin_notes } = req.body || {};
 
@@ -110,7 +129,7 @@ module.exports = async (req, res) => {
           order_id: orderIdToUpdate,
           from_status: order.order_status,
           to_status: order.order_status, // وضعیت سفارش تغییر نمی‌کند
-          changed_by: admin.id,
+          changed_by: adminUserId,
           note: `رد پرداخت توسط ادمین. ${admin_notes ? `توضیحات: ${admin_notes}` : ""}`,
           created_at: now
         });
@@ -174,7 +193,7 @@ module.exports = async (req, res) => {
         order_id: orderIdToUpdate,
         from_status: order.order_status,
         to_status: "payment_confirmed",
-        changed_by: admin.id,
+        changed_by: adminUserId,
         note: `تایید پرداخت توسط ادمین. ${admin_notes ? `توضیحات: ${admin_notes}` : ""}`,
         created_at: now
       });
